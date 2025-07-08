@@ -18,34 +18,121 @@
       padding: 20px;
       color: #333;
       min-height: 100vh;
+    }
+
+    .admin-header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 20px 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60, #3498db);
+    }
+
+    .header-content {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .edit-jobs-btn {
+      color: #e74c3c;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 8px 16px;
+      border: 2px solid #e74c3c;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .edit-jobs-btn:hover {
+      background: #e74c3c;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .admin-title {
+      color: #2c3e50;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .admin-subtitle {
+      color: #7f8c8d;
+      font-size: 1rem;
+      margin-top: 5px;
+    }
+
+    .admin-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      color: white;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .back-link {
-      color: white;
+      color: #3498db;
       text-decoration: none;
       font-weight: 600;
       padding: 10px 20px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid #3498db;
       border-radius: 8px;
       transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.1);
-      margin-bottom: 20px;
-      align-self: flex-start;
     }
 
     .back-link:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.5);
+      background: #3498db;
+      color: white;
       transform: translateY(-1px);
     }
 
     .container {
       max-width: 700px;
+      margin: 0 auto;
       width: 100%;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
@@ -198,18 +285,91 @@
 
     .feature-icon {
       font-size: 2.5rem;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      display: block;
     }
 
     .feature-title {
       color: white;
       font-weight: 600;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      font-size: 1.2rem;
     }
 
     .feature-desc {
       color: #bdc3c7;
       font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .job-item {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #ecf0f1;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .job-item:hover {
+      border-color: #3498db;
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .job-title {
+      color: #2c3e50;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .job-id {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+      background: rgba(127, 140, 141, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .job-description {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      margin: 10px 0;
+      max-height: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .job-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .job-action-btn {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 14px;
+      text-transform: none;
+      letter-spacing: normal;
+      margin: 0;
+      min-width: 80px;
+    }
+
+    .delete-btn {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+
+    .delete-btn:hover {
+      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
     }
 
     @media (max-width: 768px) {
@@ -247,8 +407,20 @@
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-link">← Back to Home</a>
-  <div class="container">
+  <div class="admin-header">
+    <div class="header-content">
+      <div>
+        <div class="admin-title">🔧 Admin Portal</div>
+        <div class="admin-subtitle">HiringPro Management Dashboard</div>
+      </div>
+      <div class="nav-buttons">
+        <a href="#" class="edit-jobs-btn" onclick="showEditJobs(); return false;">✏️ Edit Jobs</a>
+        <a href="index.html" class="back-link">← Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="jobFormSection">
     <h2>Add New Position</h2>
     <p class="form-subtitle">Create a new job posting for your organization</p>
     
@@ -274,9 +446,28 @@
     <div id="status"></div>
   </div>
 
+  <!-- Edit Jobs Section -->
+  <div class="container" id="editJobsSection" style="display: none; margin-top: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">Edit Job Postings</h2>
+      <button type="button" onclick="showAddJobs()" style="width: auto; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); padding: 10px 20px; font-size: 14px;">← Back to Add Jobs</button>
+    </div>
+    <p class="form-subtitle" style="margin-top: 0;">Manage existing job postings - view and remove as needed</p>
+    
+    <div id="jobListSection" style="margin-bottom: 20px;">
+      <div id="jobList">
+        <p style="text-align: center; color: #7f8c8d; padding: 20px;">Loading jobs...</p>
+      </div>
+      <button type="button" onclick="loadJobs()" style="width: auto; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); margin-top: 20px;">🔄 Refresh Job List</button>
+    </div>
+  </div>
+
   <script>
     const form = document.getElementById('jobForm');
     const status = document.getElementById('status');
+    const jobList = document.getElementById('jobList');
+    const addJobsSection = document.getElementById('jobFormSection');
+    const editJobsSection = document.getElementById('editJobsSection');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -324,6 +515,91 @@
         status.className = 'error';
       }
     });
+
+    // Function to show edit jobs section
+    function showEditJobs() {
+      addJobsSection.style.display = 'none';
+      editJobsSection.style.display = 'block';
+      loadJobs();
+      editJobsSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+    // Function to show add jobs section (for internal use)
+    function showAddJobs() {
+      addJobsSection.style.display = 'block';
+      editJobsSection.style.display = 'none';
+      addJobsSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+    // Load all jobs
+    async function loadJobs() {
+      try {
+        jobList.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">Loading jobs...</p>';
+        
+        const response = await fetch('https://jobresumeupload-func.azurewebsites.net/api/GetJobs');
+        
+        if (response.ok) {
+          const jobs = await response.json();
+          displayJobs(jobs);
+        } else {
+          jobList.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 20px;">Failed to load jobs</p>';
+        }
+      } catch (error) {
+        jobList.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 20px;">Error loading jobs</p>';
+      }
+    }
+
+    // Display jobs in the list
+    function displayJobs(jobs) {
+      if (!jobs || jobs.length === 0) {
+        jobList.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No jobs posted yet</p>';
+        return;
+      }
+
+      const jobsHtml = jobs.map(job => `
+        <div class="job-item">
+          <div class="job-header">
+            <h4 class="job-title">${job.title || 'Untitled Position'}</h4>
+            <span class="job-id">ID: ${job.jobId || 'N/A'}</span>
+          </div>
+          <div class="job-description">${job.description || 'No description available'}</div>
+          <div class="job-actions">
+            <button class="job-action-btn delete-btn" onclick="deleteJob('${job.jobId}')">🗑️ Remove</button>
+          </div>
+        </div>
+      `).join('');
+
+      jobList.innerHTML = jobsHtml;
+    }
+
+    // Delete a job
+    async function deleteJob(jobId) {
+      if (!confirm(`Are you sure you want to remove job "${jobId}"? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://jobresumeupload-func.azurewebsites.net/api/DeleteJob/${jobId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          alert('✅ Job removed successfully!');
+          loadJobs(); // Reload the job list
+        } else {
+          const error = await response.text();
+          alert('❌ Failed to remove job: ' + error);
+        }
+      } catch (error) {
+        alert('❌ Error removing job: ' + error.message);
+      }
+    }
 
     // Add some interactive effects
     document.addEventListener('DOMContentLoaded', function() {

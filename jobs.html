@@ -106,6 +106,49 @@
       background: #005A9E;
     }
 
+    .job-summary {
+      color: #666;
+      font-size: 15px;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .job-details {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .job-details.expanded {
+      display: block;
+    }
+
+    .read-more-btn {
+      background: transparent;
+      color: #0078D4;
+      border: 1px solid #0078D4;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 12px;
+      transition: all 0.3s;
+    }
+
+    .read-more-btn:hover {
+      background: #0078D4;
+      color: white;
+    }
+
+    .apply-btn {
+      background: #28a745;
+      margin-left: 8px;
+    }
+
+    .apply-btn:hover {
+      background: #218838;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 20px;
@@ -136,6 +179,7 @@
 
         for (const job of jobs) {
           const sections = splitDescription(job.description);
+          const jobSummary = getJobSummary(job.description);
 
           const div = document.createElement("div");
           div.className = "job-card";
@@ -143,25 +187,16 @@
           div.innerHTML = `
             <h3 class="job-title">${job.title}</h3>
             <div class="job-meta">Job ID: ${job.jobId}</div>
-          `;
-
-          for (const [section, content] of Object.entries(sections)) {
-            let bodyHtml;
-            if (Array.isArray(content)) {
-              bodyHtml = `<ul>${content.map(item => `<li>${item}</li>`).join('')}</ul>`;
-            } else {
-              bodyHtml = `<p>${content}</p>`;
-            }
-            div.innerHTML += `
-              <div class="job-section">
-                <h4>${section}</h4>
-                ${bodyHtml}
-              </div>
-            `;
-          }
-
-          div.innerHTML += `
-            <button onclick="apply('${job.jobId}','${job.title}')">Apply</button>
+            <div class="job-summary">${jobSummary}</div>
+            <div class="job-details" id="details-${job.jobId}">
+              ${generateJobSections(sections)}
+            </div>
+            <div style="margin-top: 16px;">
+              <button class="read-more-btn" onclick="toggleJobDetails('${job.jobId}')" id="toggle-${job.jobId}">
+                📖 Read More
+              </button>
+              <button class="apply-btn" onclick="apply('${job.jobId}','${job.title}')">Apply Now</button>
+            </div>
           `;
 
           container.appendChild(div);
@@ -172,9 +207,62 @@
       }
     }
 
+    function getJobSummary(description) {
+      // Extract first 100-150 characters as summary
+      const cleanDesc = description.replace(/\n/g, ' ').trim();
+      if (cleanDesc.length <= 150) {
+        return cleanDesc;
+      }
+      
+      // Try to end at a sentence
+      const summary = cleanDesc.substring(0, 150);
+      const lastPeriod = summary.lastIndexOf('.');
+      const lastSpace = summary.lastIndexOf(' ');
+      
+      if (lastPeriod > 100) {
+        return summary.substring(0, lastPeriod + 1);
+      } else if (lastSpace > 100) {
+        return summary.substring(0, lastSpace) + '...';
+      } else {
+        return summary + '...';
+      }
+    }
+
+    function generateJobSections(sections) {
+      let html = '';
+      for (const [section, content] of Object.entries(sections)) {
+        let bodyHtml;
+        if (Array.isArray(content)) {
+          bodyHtml = `<ul>${content.map(item => `<li>${item}</li>`).join('')}</ul>`;
+        } else {
+          bodyHtml = `<p>${content}</p>`;
+        }
+        html += `
+          <div class="job-section">
+            <h4>${section}</h4>
+            ${bodyHtml}
+          </div>
+        `;
+      }
+      return html;
+    }
+
+    function toggleJobDetails(jobId) {
+      const details = document.getElementById(`details-${jobId}`);
+      const button = document.getElementById(`toggle-${jobId}`);
+      
+      if (details.classList.contains('expanded')) {
+        details.classList.remove('expanded');
+        button.innerHTML = '📖 Read More';
+      } else {
+        details.classList.add('expanded');
+        button.innerHTML = '📖 Read Less';
+      }
+    }
+
     function splitDescription(desc) {
       const sections = {};
-      const regex = /(About the Role|Key Responsibilities|Required Skills and Qualifications|Preferred Qualifications)/gi;
+      const regex = /(About the Role|Key Responsibilities|Roles and Responsibilities|Required Skills and Qualifications|Preferred Qualifications|Requirements|Responsibilities|Key Competencies|Qualifications)/gi;
       const parts = desc.split(regex);
 
       if (parts.length > 1) {
