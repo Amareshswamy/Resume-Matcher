@@ -542,7 +542,7 @@
       try {
         jobList.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">Loading jobs...</p>';
         
-        const response = await fetch('https://jobresumeupload-func.azurewebsites.net/api/GetJobs');
+        const response = await fetch('https://jobresumeupload-func.azurewebsites.net/api/ListJobs');
         
         if (response.ok) {
           const jobs = await response.json();
