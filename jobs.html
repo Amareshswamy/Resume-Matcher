@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Job Openings</title>
   <style>
     body {
@@ -13,10 +14,39 @@
       margin-left: auto;
       margin-right: auto;
     }
+
+    .header {
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #0078D4;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 16px;
+      border: 2px solid #0078D4;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+      background: #0078D4;
+      color: white;
+    }
     h2 {
       text-align: center;
       color: #333;
       font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 16px;
       margin-bottom: 30px;
     }
     .job-card {
@@ -75,10 +105,25 @@
     .job-card button:hover {
       background: #005A9E;
     }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+      
+      .back-link {
+        margin-bottom: 15px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>🚀 Current Job Openings</h2>
+  <div class="header">
+    <a href="index.html" class="back-link">← Back to Home</a>
+    <h2>🚀 Current Job Openings</h2>
+    <p class="subtitle">Find your perfect opportunity</p>
+  </div>
+  
   <div id="jobsContainer">Loading jobs...</div>
 
   <script>
