@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "jobresumefuncProj": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7296"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 30080,
+      "useSSL": false
+    }
+  }
+}
