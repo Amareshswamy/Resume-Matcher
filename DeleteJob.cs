@@ -1,45 +1,50 @@
-﻿using Azure;
-using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace JobFunctions
 {
-    public static class DeleteJobFromBlob
+    public class DeleteJob
     {
-        [FunctionName("DeleteJob")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "DeleteJob/{jobId}")] HttpRequest req,
-            string jobId,
-            ILogger log)
+        private readonly ILogger _logger;
+
+        public DeleteJob(ILoggerFactory loggerFactory)
         {
-            log.LogInformation($"Deleting blob for jobId: {jobId}");
+            _logger = loggerFactory.CreateLogger<DeleteJob>();
+        }
+
+        [Function("DeleteJob")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "DeleteJob/{jobId}")] HttpRequestData req,
+            string jobId)
+        {
+            _logger.LogInformation($"Deleting blob for jobId: {jobId}");
 
             string connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            string containerName = "jobs"; // your blob container name
+            string containerName = "jobs"; // Your blob container name
 
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
-            // Assuming blob name is "{jobId}.json"
             string blobName = $"{jobId}.json";
             var blobClient = containerClient.GetBlobClient(blobName);
 
-            // Check if the blob exists
             var exists = await blobClient.ExistsAsync();
             if (!exists)
             {
-                return new NotFoundObjectResult($"Job '{jobId}' not found.");
+                var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                await notFoundResponse.WriteStringAsync($"Job '{jobId}' not found.");
+                return notFoundResponse;
             }
 
-            // Delete the blob
             await blobClient.DeleteIfExistsAsync();
 
-            return new OkObjectResult($"Job '{jobId}' deleted successfully.");
+            var okResponse = req.CreateResponse(HttpStatusCode.OK);
+            await okResponse.WriteStringAsync($"Job '{jobId}' deleted successfully.");
+            return okResponse;
         }
     }
 }
