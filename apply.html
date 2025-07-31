@@ -79,14 +79,7 @@
       overflow: hidden;
     }
 
-    .job-info::before {
-      content: '💼';
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      font-size: 2.5rem;
-      opacity: 0.1;
-    }
+
 
     .job-info div {
       margin-bottom: 8px;
@@ -151,6 +144,16 @@
       letter-spacing: 0.5px;
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.8;
+      transform: none !important;
     }
 
     button::before {
@@ -164,13 +167,37 @@
       transition: left 0.5s;
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
     }
 
-    button:hover::before {
+    button:hover:not(:disabled)::before {
       left: 100%;
+    }
+
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      display: none;
+    }
+
+    button.loading .loading-spinner {
+      display: block;
+    }
+
+    button.loading .button-text {
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     #status {
@@ -181,6 +208,18 @@
       font-weight: 600;
       font-size: 15px;
       transition: all 0.3s ease;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    #status.loading {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      border: 2px solid #2196f3;
+      color: #0d47a1;
+      box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
     }
 
     #status.success {
@@ -195,6 +234,34 @@
       border: 2px solid #dc3545;
       color: #721c24;
       box-shadow: 0 5px 15px rgba(220, 53, 69, 0.2);
+    }
+
+    .status-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(13, 71, 161, 0.3);
+      border-radius: 50%;
+      border-top-color: #0d47a1;
+      animation: spin 1s linear infinite;
+    }
+
+    .status-icon {
+      font-size: 18px;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+    }
+
+    .pulse-animation {
+      animation: pulse 2s ease-in-out infinite;
     }
 
     .form-group {
@@ -221,7 +288,7 @@
 </head>
 <body>
   <div class="container">
-    <a href="index.html" class="back-link">← Back to Home</a>
+    <a href="jobs.html" class="back-link">← Back to Jobs</a>
     
     <h2>Job Application</h2>
     <p class="subtitle">Please fill out the form below to apply for this position</p>
@@ -248,7 +315,10 @@
         <input type="file" name="resume" accept=".pdf,.doc,.docx" required />
       </div>
       
-      <button type="submit">Submit Application</button>
+      <button type="submit" id="submitBtn">
+        <div class="loading-spinner"></div>
+        <span class="button-text">Submit Application</span>
+      </button>
     </form>
 
     <div id="status"></div>
@@ -257,6 +327,7 @@
   <script>
     const form = document.getElementById('applyForm');
     const status = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
     const urlParams = new URLSearchParams(window.location.search);
 
     const jobId = urlParams.get('jobId') || 'UNKNOWN';
@@ -265,28 +336,77 @@
     document.getElementById('jobIdDisplay').textContent = jobId;
     document.getElementById('jobTitleDisplay').textContent = jobTitle;
 
+    // Function to show loading state
+    function showLoadingState(message) {
+      status.innerHTML = `
+        <div class="status-spinner"></div>
+        <span>${message}</span>
+      `;
+      status.className = 'loading pulse-animation';
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+    }
+
+    // Function to show success state
+    function showSuccessState(message) {
+      status.innerHTML = `
+        <div class="status-icon">✅</div>
+        <span>${message}</span>
+      `;
+      status.className = 'success';
+      submitBtn.classList.remove('loading');
+      submitBtn.disabled = false;
+    }
+
+    // Function to show error state
+    function showErrorState(message) {
+      status.innerHTML = `
+        <div class="status-icon">❌</div>
+        <span>${message}</span>
+      `;
+      status.className = 'error';
+      submitBtn.classList.remove('loading');
+      submitBtn.disabled = false;
+    }
+
+    // Function to reset status
+    function resetStatus() {
+      status.innerHTML = '';
+      status.className = '';
+      submitBtn.classList.remove('loading');
+      submitBtn.disabled = false;
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      status.textContent = 'Reading file...';
-      status.className = '';
+      
+      // Show initial loading state
+      showLoadingState('📄 Reading resume file...');
 
       const file = form.resume.files[0];
       const reader = new FileReader();
 
       reader.onload = async () => {
-        const base64Content = reader.result.split(',')[1].trim();
-
-        const payload = {
-          jobId: jobId,
-          fileName: file.name,
-          fullName: form.name.value.trim(),
-          email: form.email.value.trim(),
-          fileContent: base64Content
-        };
-
-        status.textContent = 'Submitting application...';
-
         try {
+          // Show processing state
+          showLoadingState('🔄 Processing your application...');
+          
+          // Add a small delay to show the processing message
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          const base64Content = reader.result.split(',')[1].trim();
+
+          const payload = {
+            jobId: jobId,
+            fileName: file.name,
+            fullName: form.name.value.trim(),
+            email: form.email.value.trim(),
+            fileContent: base64Content
+          };
+
+          // Show submission state
+          showLoadingState('📤 Submitting your application...');
+
           const response = await fetch(
             'https://prod-53.eastus.logic.azure.com:443/workflows/2f48f2989c0e4575bcce7bdeba8b7ede/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=quoAAPEPDoxNkWflqtCStoGu0P0a7bAdOyofG9SnaAc',
             {
@@ -297,18 +417,28 @@
           );
 
           if (response.ok) {
-            status.textContent = 'Application submitted successfully!';
-            status.className = 'success';
+            showSuccessState('Application submitted successfully!');
             form.reset();
+            
+            // Add celebration effect
+            setTimeout(() => {
+              status.style.transform = 'scale(1.05)';
+              setTimeout(() => {
+                status.style.transform = 'scale(1)';
+              }, 300);
+            }, 100);
           } else {
             const text = await response.text();
             throw new Error(`Server error: ${response.status} ${text}`);
           }
         } catch (err) {
           console.error(err);
-          status.textContent = `Error: ${err.message}`;
-          status.className = 'error';
+          showErrorState(`Failed to submit application: ${err.message}`);
         }
+      };
+
+      reader.onerror = () => {
+        showErrorState('Failed to read the resume file. Please try again.');
       };
 
       reader.readAsDataURL(file);
