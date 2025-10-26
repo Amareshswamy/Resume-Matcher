@@ -1,0 +1,410 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+            "When_a_HTTP_request_is_received": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "schema": {
+                        "properties": {
+                            "jobId": {
+                                "type": "string"
+                            },
+                            "fileName": {
+                                "type": "string"
+                            },
+                            "fullName": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "fileContent": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "jobId",
+                            "fileName",
+                            "fullName",
+                            "email",
+                            "fileContent"
+                        ]
+                    }
+                }
+            }
+        },
+        "actions": {
+            "Parse_JSON": {
+                "runAfter": {
+                    "Compose": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson",
+                "inputs": {
+                    "content": "@outputs('Compose')",
+                    "schema": {
+                        "properties": {
+                            "title": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                }
+            },
+            "Compose": {
+                "runAfter": {
+                    "Get_blob_content_(V2)": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Compose",
+                "inputs": "@base64ToString(body('Get_blob_content_(V2)')?['$content'])\r\n"
+            },
+            "getsasUrlBlobResume": {
+                "runAfter": {
+                    "Archive_to_blob": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "getsasUrlBlobResume",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "resumeSASurl": {
+                "runAfter": {
+                    "SAS_URI_for_jobDescreption": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                    "name": "getsasUrlBlobResume",
+                    "value": "@body('SAS_URI_for_resume')?['WebUrl']"
+                }
+            },
+            "SAS_URI_for_resume": {
+                "runAfter": {
+                    "getjobDescSASURL": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "Permissions": "Read"
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent('storagev2p1')}/CreateSharedLinkByPath",
+                    "queries": {
+                        "path": "@concat('applications/', triggerBody()?['jobId'], '/', triggerBody()?['fileName'])\r\n"
+                    }
+                }
+            },
+            "Archive_to_blob": {
+                "runAfter": {},
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": "@base64ToBinary(triggerBody()?['fileContent'])",
+                    "headers": {
+                        "ReadFileMetadataFromServer": true
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('storagev2p1'))}/files",
+                    "queries": {
+                        "folderPath": "/applications",
+                        "name": "@concat(triggerBody()?['jobId'], '/', triggerBody()?['fileName'])",
+                        "queryParametersSingleEncoded": true
+                    }
+                },
+                "runtimeConfiguration": {
+                    "contentTransfer": {
+                        "transferMode": "Chunked"
+                    }
+                }
+            },
+            "SAS_URI_for_jobDescreption": {
+                "runAfter": {
+                    "SAS_URI_for_resume": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "Permissions": "Read"
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent('AccountNameFromSettings')}/CreateSharedLinkByPath",
+                    "queries": {
+                        "path": "@concat('jobs/', triggerBody()?['jobId'], '.json')\r\n"
+                    }
+                }
+            },
+            "getjobDescSASURL": {
+                "runAfter": {
+                    "getsasUrlBlobResume": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "getjobDescSASURL",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "jobDescURI": {
+                "runAfter": {
+                    "resumeSASurl": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                    "name": "getjobDescSASURL",
+                    "value": "@body('SAS_URI_for_jobDescreption')?['WebUrl']"
+                }
+            },
+            "Get_blob_content_(V2)": {
+                "runAfter": {
+                    "jobDescURI": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('storagev2p1'))}/files/@{encodeURIComponent(encodeURIComponent(concat('jobs/', triggerBody()?['jobId'], '.json')))}/content",
+                    "queries": {
+                        "inferContentType": true
+                    }
+                }
+            },
+            "HTTP": {
+                "runAfter": {
+                    "Parse_JSON": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http",
+                "inputs": {
+                    "uri": "https://jobresumeupload-func.azurewebsites.net/api/CompareResumeJob?code=iaQ4jwoL-4rfvf2UunHyKRDWPyhsQCWMmYHcWdU59saTAzFugu2TQg==",
+                    "method": "POST",
+                    "body": {
+                        "resumeUrl": "@{variables('getsasUrlBlobResume')}",
+                        "jobDescriptionUrl": "@{variables('getjobDescSASURL')}"
+                    }
+                },
+                "runtimeConfiguration": {
+                    "contentTransfer": {
+                        "transferMode": "Chunked"
+                    }
+                }
+            },
+            "Response": {
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Response",
+                "kind": "Http",
+                "inputs": {
+                    "statusCode": 200,
+                    "body": "@body('HTTP')"
+                }
+            },
+            "Parse_JSON_for_Matching_score": {
+                "runAfter": {
+                    "Response": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson",
+                "inputs": {
+                    "content": "@body('HTTP')",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "matchingScore": {
+                                "type": "integer",
+                                "description": "The calculated matching score between the resume and job description (0-100)."
+                            },
+                            "matchedKeywords": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "A list of technical keywords found in both the resume and job description."
+                            },
+                            "matchedCertifications": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "A list of exact certification names found in both documents, or an empty array if none."
+                            },
+                            "resumeFitSummary": {
+                                "type": "string",
+                                "description": "A brief, one-sentence summary of the resume's fit with the job description."
+                            }
+                        },
+                        "required": [
+                            "matchingScore",
+                            "matchedKeywords",
+                            "matchedCertifications",
+                            "resumeFitSummary"
+                        ]
+                    }
+                }
+            },
+            "Condition": {
+                "actions": {
+                    "Send_an_email_(V2)": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['office365']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "body": {
+                                "To": "aswamy@enkaytech.com",
+                                "Subject": "New Resume for @{body('Parse_JSON')?['title']}",
+                                "Body": "<p class=\"editor-paragraph\">A new resume has been uploaded by @{triggerBody()?['fullName']} for job ID @{triggerBody()?['jobId']}.</p><br><p class=\"editor-paragraph\">Resume match score: @{body('Parse_JSON_for_Matching_score')?['matchingScore']}%<br><br>Matched Keywords : @{join(body('Parse_JSON_for_Matching_score')?['matchedKeywords'],' ,')}<br><br>Matched Certification if needed : @{body('Parse_JSON_for_Matching_score')?['matchedCertifications']}<br><br>Resume fit Summary: @{body('Parse_JSON_for_Matching_score')['resumeFitSummary']}<br><br><br>Thanks</p><p class=\"editor-paragraph\">EnkayTech ATS.</p><br>",
+                                "Attachments": [
+                                    {
+                                        "Name": "@{triggerBody()?['fileName']}",
+                                        "ContentBytes": "@{triggerBody()?['fileContent']}"
+                                    }
+                                ],
+                                "Importance": "Normal"
+                            },
+                            "path": "/v2/Mail"
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Set_variable": [
+                        "Succeeded"
+                    ]
+                },
+                "else": {
+                    "actions": {
+                        "Terminate": {
+                            "type": "Terminate",
+                            "inputs": {
+                                "runStatus": "Failed",
+                                "runError": {
+                                    "code": "200"
+                                }
+                            }
+                        }
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "greater": [
+                                "@body('Parse_JSON_for_Matching_score')?['matchingScore']",
+                                50
+                            ]
+                        }
+                    ]
+                },
+                "type": "If"
+            },
+            "string_var": {
+                "runAfter": {
+                    "Parse_JSON_for_Matching_score": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "matchingScore",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "Set_variable": {
+                "runAfter": {
+                    "string_var": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "SetVariable",
+                "inputs": {
+                    "name": "matchingScore",
+                    "value": "@{body('Parse_JSON_for_Matching_score')?['matchingScore']}"
+                }
+            }
+        },
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "type": "Object",
+                "defaultValue": {}
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "type": "Object",
+            "value": {
+                "azureblob": {
+                    "id": "/subscriptions/e15d161f-6bbe-48f5-9caa-9e5bc0847c46/providers/Microsoft.Web/locations/eastus/managedApis/azureblob",
+                    "connectionId": "/subscriptions/e15d161f-6bbe-48f5-9caa-9e5bc0847c46/resourceGroups/rg-resumeProj/providers/Microsoft.Web/connections/azureblob",
+                    "connectionName": "azureblob"
+                },
+                "office365": {
+                    "id": "/subscriptions/e15d161f-6bbe-48f5-9caa-9e5bc0847c46/providers/Microsoft.Web/locations/eastus/managedApis/office365",
+                    "connectionId": "/subscriptions/e15d161f-6bbe-48f5-9caa-9e5bc0847c46/resourceGroups/rg-resumeProj/providers/Microsoft.Web/connections/office365",
+                    "connectionName": "office365"
+                }
+            }
+        }
+    }
+}
