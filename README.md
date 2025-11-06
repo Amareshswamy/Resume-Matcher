@@ -1,6 +1,6 @@
 # 🚀 Applicant Tracking System (ATS) - HiringPro
 
-This project is a lightweight, serverless Applicant Tracking System built with **Azure Functions**, **Azure Blob Storage**, and a dynamic web UI. It allows recruiters to create, publish, and manage job postings, as well as receive and evaluate candidate applications automatically.
+This project is a lightweight, serverless Applicant Tracking System built with **Azure Functions**,**Azure Logic Apps**,**Azure AI foundary**, **Azure Blob Storage**, and a dynamic web UI. It allows recruiters to create, publish, and manage job postings, as well as receive and evaluate candidate applications automatically using AI.
 
 ---
 
